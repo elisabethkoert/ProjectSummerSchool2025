@@ -12,7 +12,7 @@ def main():
     
     print("Main function started")
     # Define parameters for the model
-    
+    # :) Maud 
     # Run function to create the connectivity matriy
     #
     
