@@ -5,6 +5,7 @@ Created on Thu Sep 18 17:28:23 2025
 @author: Elisabeth
 """
 
+import brian2
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -24,7 +25,7 @@ def main():
     print("Main function started")
     # 1. Define parameters for the model (Neuron equations) mostly copy form existing model
     N=1000 # num of neurons in the model
-    
+    #:(
     
     # 2. Create the connectivity matrix 
     #     ->> Export to make a structural Graph of the model
