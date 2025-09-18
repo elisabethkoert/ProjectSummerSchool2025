@@ -15,9 +15,8 @@ from brian2.units import *
 import scipy
 from scipy.signal import periodogram
 
-def createConnectivityMatrix():
-    
-    return M
+from CreateConnectivityMatrix import createConnectivityMatrix
+
 
 def main():
 
@@ -29,9 +28,9 @@ def main():
     
     # 2. Create the connectivity matrix 
     #     ->> Export to make a structural Graph of the model
+    M = createConnectivityMatrix(N)
     
-    
-        
+    print(M)
     # 3.1 Build Brian 2 model with the connectivity matrix (2) and model parameters (1)
     
     # 3.2 Set up the monitors to read out spike rate of all 
