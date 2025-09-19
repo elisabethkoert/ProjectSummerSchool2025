@@ -15,11 +15,7 @@ from brian2.units import *
 import scipy
 from scipy.signal import periodogram
 
-<<<<<<< HEAD
-#from CreateConnectivityMatrix import createConnectivityMatrix
-=======
 from generate_connectivity_matrix import generate_connectivity_matrix
->>>>>>> 6ad706a4410ba0e781e448f394bbb97b9d39407d
 
 
 def main():
