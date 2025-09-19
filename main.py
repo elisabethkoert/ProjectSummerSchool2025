@@ -63,7 +63,8 @@ Pi = neurons[NE:]
 #add background noise to all neurons to acivate the network 
 background_rate = 6000*Hz
 G_background = PoissonGroup(NE+NI, background_rate)
-noise_strength=0.5
+noise_strength=0.45
+
 S_background = Synapses(G_background, neurons, on_pre='g_ampa += noise_strength*nS') # here we need to change the noise level. 
 # S_background.connect(True, p=0.1)
 S_background.connect(j='i')
@@ -106,7 +107,7 @@ state_mon = StateMonitor(Pe, ['g_ampa', 'g_gaba'], record=True)
 
 
 # 3.3 Run the model with white noise input at 1-10 different noise intensity levels
-brian2.run(1.*second)   
+brian2.run(10.*second)   
 
 # 4. Make a spike rate map, spike rate correlation map, spike rate covariance map
 #    -----> Export covariance map to make a dynamics graph
@@ -117,11 +118,22 @@ plt.figure(figsize=(15,6))
 plt.plot(sm.t, sm.i, 'k.',ms = 1)
 plt.xlabel("Time (ms)")
 plt.ylabel("Neuron ID")
+plt.title(f"avg firing rate: {avg_firing_rate:.2f} Hz")
 plt.show()
 
 
+
 # 5. Plot the E/I distributions
-    
+E=np.array(state_mon.g_ampa[:])
+I=np.array(state_mon.g_gaba[:])
+E_mean=np.mean(E,axis=0)
+I_mean=np.mean(I,axis=0)
+
+plt.figure(figsize=(15,6))
+bins=np.linspace(0,1.1*np.max([I_mean,E_mean]),100)
+plt.hist(E_mean,bins,alpha=0.5,label='E')
+plt.hist(I_mean,bins,alpha=0.5,label='I')
+plt.xlabel('Average syn current')
 
 
 # if __name__ == "__main__":
