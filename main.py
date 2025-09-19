@@ -15,7 +15,7 @@ from brian2.units import *
 import scipy
 from scipy.signal import periodogram
 
-from CreateConnectivityMatrix import createConnectivityMatrix
+from generate_connectivity_matrix import generate_connectivity_matrix
 
 
 def main():
@@ -40,6 +40,8 @@ def main():
     NE = 800          # Number of excitatory cells
     NI = 200          # Number of inhibitory cells
     N=NE+NI           # Total number of neurons
+    
+    num_of_blocks=10
     
     # synaptic parameters 
     tau_ampa = 1.0*ms   # Glutamatergic synaptic time constant
@@ -69,7 +71,16 @@ def main():
     print('Network and neuron models are created and connected to background noise')
     # 2. Create the connectivity matrix 
     #     ->> Export to make a structural Graph of the model
-    M = createConnectivityMatrix(N)
+    #connected_pairs=np.random.randint(0,n,size=(4,2))
+    connected_pairs=[[3,4],[4,5],[5,6],[4,3],[5,4],[6,5]]
+    M = generate_connectivity_matrix(N,num_of_blocks,connected_pairs)
+    
+    # show the matrix
+    fig, ax = plt.subplots()
+    ax.imshow(M, cmap='binary')
+    # Save the plot to a file
+    # plt.savefig('image.png')
+    plt.show()
     
     print(M)
     # 3.1 Build Brian 2 model with the connectivity matrix (2) and model parameters (1)
