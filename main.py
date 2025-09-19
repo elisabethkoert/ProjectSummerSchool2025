@@ -74,7 +74,7 @@ print('Network and neuron models are created and connected to background noise')
 
 #connected_pairs=np.random.randint(0,n,size=(4,2))
 connected_pairs=[[3,4],[4,5],[5,6],[4,3],[5,4],[6,5]]
-M = generate_connectivity_matrix(NE,num_of_blocks,connected_pairs)
+M = generate_connectivity_matrix(NE,num_of_blocks,connected_pairs,p_intra=0.5,p_bg=0.1,p_inter=0.25)
 epsilon=sum(M)/(NE*NE)
 # show the matrix
 fig, ax = plt.subplots()
@@ -107,7 +107,7 @@ state_mon = StateMonitor(Pe, ['g_ampa', 'g_gaba'], record=True)
 
 
 # 3.3 Run the model with white noise input at 1-10 different noise intensity levels
-brian2.run(10.*second)   
+brian2.run(1.*second)   
 
 # 4. Make a spike rate map, spike rate correlation map, spike rate covariance map
 #    -----> Export covariance map to make a dynamics graph
