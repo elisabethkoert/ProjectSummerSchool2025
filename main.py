@@ -70,14 +70,7 @@ def main():
 
     print('Network and neuron models are created and connected to background noise')
     # 2.1 Create the connectivity matrix 
-    #     ->> Export to make a structural Graph of the model
-<<<<<<< HEAD
-    # M = createConnectivityMatrix(NE)
 
-    # 2.2 Convert the connectivity matrix to a format for brian2  
-    pre_idx, post_idx=M.nonzero()
-
-=======
     #connected_pairs=np.random.randint(0,n,size=(4,2))
     connected_pairs=[[3,4],[4,5],[5,6],[4,3],[5,4],[6,5]]
     M = generate_connectivity_matrix(N,num_of_blocks,connected_pairs)
@@ -90,7 +83,10 @@ def main():
     plt.show()
     
     print(M)
->>>>>>> 6ad706a4410ba0e781e448f394bbb97b9d39407d
+
+    # 2.2 Convert the connectivity matrix to a format for brian2  
+    pre_idx, post_idx=M.nonzero()
+
     # 3.1 Build Brian 2 model with the connectivity matrix (2) and model parameters (1)
     con_e2e = Synapses(Pe, Pe, on_pre='g_ampa += 0.2*nS')
     con_e2e.connect(i=pre_idx,j=post_idx) 
