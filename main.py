@@ -152,6 +152,9 @@ plt.xlabel("Neuron Index")
 plt.ylabel("Neuron Index")
 plt.show()
 
+plt.figure(figsize=(15, 6))
+plt.hist(cov_matrix.flatten(), bins=50, color='blue', alpha=0.7)
+plt.title("Histogram of Correlation Values")
 
 # 5. Plot the E/I distributions
 E=np.array(state_mon.E_syn[:,1000:]/nS)
@@ -166,7 +169,7 @@ plt.figure(figsize=(15,6))
 bins=np.linspace(0,1.01*np.max([I_mean,E_mean]),100)
 plt.plot(Time,E_mean,color='blue',label='E')
 plt.plot(Time,I_mean,color='red',label='I')
-plt.title(f"E/I currents, mean E={np.mean(E_mean):.2f} nA, mean I={np.mean(I_mean):.2f} nA")
+plt.title(f"E/I ratio = {np.mean(E_mean)/np.mean(I_mean):.2f}  ")
 #plt.plot(Time,E_mean-I_mean,color='black',label='difference')
 plt.xlabel('Time (ms)')
 plt.legend()
