@@ -71,9 +71,9 @@ S_background.connect(j='i')
 
 print('Network and neuron models are created and connected to background noise')
 # 2.1 Create the connectivity matrix 
-
-#connected_pairs=np.random.randint(0,n,size=(4,2))
-connected_pairs=[[3,4],[4,5],[5,6],[4,3],[5,4],[6,5]]
+np.random.seed(42) 
+connected_pairs=np.random.randint(0,num_of_blocks,size=(10,2))
+#connected_pairs=[[3,4],[4,5],[5,6],[4,3],[5,4],[6,5]]
 M = generate_connectivity_matrix(NE,num_of_blocks,connected_pairs,p_intra=0.5,p_bg=0.1,p_inter=0.25)
 epsilon=sum(M)/(NE*NE)
 # show the matrix
@@ -107,7 +107,7 @@ state_mon = StateMonitor(Pe, ['g_ampa', 'g_gaba'], record=True)
 
 
 # 3.3 Run the model with white noise input at 1-10 different noise intensity levels
-brian2.run(1.*second)   
+brian2.run(2.*second)   
 
 # 4. Make a spike rate map, spike rate correlation map, spike rate covariance map
 #    -----> Export covariance map to make a dynamics graph
@@ -121,36 +121,11 @@ plt.ylabel("Neuron ID")
 plt.title(f"avg firing rate: {avg_firing_rate:.2f} Hz")
 plt.show()
 
-# 1. Extract spike times and neuron indices
-spike_trains = sm.spike_trains()  # dictionary: neuron index -> array of spike times
-
-# 2. Bin the spike times (e.g., in 10 ms windows)
-bin_size = 10*ms
-bins = np.arange(0, 1*second/bin_size + 1) * bin_size
-n_neurons = len(spike_trains)
-binned_counts = np.zeros((n_neurons, len(bins)-1))
-
-for i, train in spike_trains.items():
-    counts, _ = np.histogram(train, bins=bins)
-    binned_counts[i] = counts
-
-# 3. Compute covariance matrix
-# Rows: neurons, Columns: time bins
-cov_matrix = np.cov(binned_counts)
-
-print("Covariance matrix shape:", cov_matrix.shape)
-# Option 2: Using matplotlib directly
-plt.imshow(cov_matrix, interpolation='nearest', cmap='coolwarm')
-plt.colorbar(label='Covariance')
-plt.title("Neuron Covariance Map")
-plt.xlabel("Neuron Index")
-plt.ylabel("Neuron Index")
-plt.show()
 
 
 # 5. Plot the E/I distributions
-E=np.array(state_mon.g_ampa[:])
-I=np.array(state_mon.g_gaba[:])
+E=np.array(state_mon.g_ampa[:]/nS)
+I=np.array(state_mon.g_gaba[:]/nS)
 E_mean=np.mean(E,axis=0)
 I_mean=np.mean(I,axis=0)
 
