@@ -15,7 +15,7 @@ from brian2.units import *
 import scipy
 from scipy.signal import periodogram
 
-from CreateConnectivityMatrix import createConnectivityMatrix
+#from CreateConnectivityMatrix import createConnectivityMatrix
 
 
 def main():
@@ -37,8 +37,8 @@ def main():
     '''
 
     #network parameters 
-    NE = 800          # Number of excitatory cells
-    NI = 200          # Number of inhibitory cells
+    NE = 1000          # Number of excitatory cells
+    NI = 250          # Number of inhibitory cells
     N=NE+NI           # Total number of neurons
     
     # synaptic parameters 
@@ -67,14 +67,16 @@ def main():
     S_background.connect(j='i')
 
     print('Network and neuron models are created and connected to background noise')
-    # 2. Create the connectivity matrix 
+    # 2.1 Create the connectivity matrix 
     #     ->> Export to make a structural Graph of the model
-    M = createConnectivityMatrix(N)
-    
-    print(M)
+    # M = createConnectivityMatrix(NE)
+
+    # 2.2 Convert the connectivity matrix to a format for brian2  
+    pre_idx, post_idx=M.nonzero()
+
     # 3.1 Build Brian 2 model with the connectivity matrix (2) and model parameters (1)
     con_e2e = Synapses(Pe, Pe, on_pre='g_ampa += 0.2*nS')
-    con_e2e.connect(p=epsilon) #change this to the matrix epsilon. 
+    con_e2e.connect(i=pre_idx,j=post_idx) 
 
     con_e2i = Synapses(Pe, Pi, on_pre='g_ampa += 0.5*nS')
     con_e2i.connect(p=epsilon)
@@ -86,12 +88,12 @@ def main():
     con_i2i.connect(p=epsilon)
 
 
-    sm = SpikeMonitor(neurons)
 
-    state_mon = StateMonitor(Pe, ['g_ampa', 'g_gaba'], record=np.arange(10))
     # 3.2 Set up the monitors to read out spike rate of all 
     #    neurons and E/I currents at some random neurons
-    
+    sm = SpikeMonitor(neurons)
+
+    state_mon = StateMonitor(Pe, ['g_ampa', 'g_gaba'], record=np.arange(10)) 
     
     
     # 3.3 Run the model with white noise input at 1-10 different noise intensity levels
