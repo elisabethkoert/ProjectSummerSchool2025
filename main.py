@@ -121,6 +121,31 @@ plt.ylabel("Neuron ID")
 plt.title(f"avg firing rate: {avg_firing_rate:.2f} Hz")
 plt.show()
 
+# 1. Extract spike times and neuron indices
+spike_trains = sm.spike_trains()  # dictionary: neuron index -> array of spike times
+
+# 2. Bin the spike times (e.g., in 10 ms windows)
+bin_size = 10*ms
+bins = np.arange(0, 1*second/bin_size + 1) * bin_size
+n_neurons = len(spike_trains)
+binned_counts = np.zeros((n_neurons, len(bins)-1))
+
+for i, train in spike_trains.items():
+    counts, _ = np.histogram(train, bins=bins)
+    binned_counts[i] = counts
+
+# 3. Compute covariance matrix
+# Rows: neurons, Columns: time bins
+cov_matrix = np.cov(binned_counts)
+
+print("Covariance matrix shape:", cov_matrix.shape)
+# Option 2: Using matplotlib directly
+plt.imshow(cov_matrix, interpolation='nearest', cmap='coolwarm')
+plt.colorbar(label='Covariance')
+plt.title("Neuron Covariance Map")
+plt.xlabel("Neuron Index")
+plt.ylabel("Neuron Index")
+plt.show()
 
 
 # 5. Plot the E/I distributions
