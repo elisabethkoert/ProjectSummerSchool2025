@@ -46,7 +46,7 @@ num_of_blocks=10
 # synaptic parameters 
 tau_ampa = 1.0*ms   # Glutamatergic synaptic time constant
 tau_gaba = 2.0*ms  # GABAergic synaptic time constant
-epsilon = 0.1      # Sparseness of synaptic connections (For the I->I, I->E, E->I connections)
+#epsilon = 0.1      # Sparseness of synaptic connections (For the I->I, I->E, E->I connections)
 
 #time parameters 
 sim_dt = 0.1*ms
@@ -63,7 +63,7 @@ Pi = neurons[NE:]
 #add background noise to all neurons to acivate the network 
 background_rate = 6000*Hz
 G_background = PoissonGroup(NE+NI, background_rate)
-noise_strength=0.45
+noise_strength=0.46
 
 S_background = Synapses(G_background, neurons, on_pre='g_ampa += noise_strength*nS') # here we need to change the noise level. 
 # S_background.connect(True, p=0.1)
@@ -75,13 +75,13 @@ print('Network and neuron models are created and connected to background noise')
 #connected_pairs=np.random.randint(0,n,size=(4,2))
 connected_pairs=[[3,4],[4,5],[5,6],[4,3],[5,4],[6,5]]
 M = generate_connectivity_matrix(NE,num_of_blocks,connected_pairs)
-
+epsilon=sum(M)/(NE*NE)
 # show the matrix
 fig, ax = plt.subplots()
 ax.imshow(M, cmap='binary')
 # Save the plot to a file
 # plt.savefig('image.png')
-plt.show()
+#plt.show()
 
 # 2.2 Convert the connectivity matrix to a format for brian2  
 pre_idx, post_idx=M.nonzero()
@@ -134,6 +134,7 @@ bins=np.linspace(0,1.1*np.max([I_mean,E_mean]),100)
 plt.hist(E_mean,bins,alpha=0.5,label='E')
 plt.hist(I_mean,bins,alpha=0.5,label='I')
 plt.xlabel('Average syn current')
+plt.legend('Excitatory','Inhibitory')
 
 
 # if __name__ == "__main__":
