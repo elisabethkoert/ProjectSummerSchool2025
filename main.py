@@ -31,9 +31,11 @@ memc = 200.0*pfarad  # Membrane capacitance
 bgcurrent = 50*pA   # External current
 
 eqs_neurons='''
-dv/dt=(-gl*(v-el)-(g_ampa*v+g_gaba*(v-er))+bgcurrent)/memc : volt (unless refractory)
 dg_ampa/dt = -g_ampa/tau_ampa : siemens # post-synaptic exc. conductance
-dg_gaba/dt = -g_gaba/tau_gaba : siemens # post-synaptic inh. conductance
+dg_gaba/dt = -g_gaba/tau_gaba : siemens # post-synaptic inh. conductance 
+dv/dt=(-gl*(v-el)-(g_ampa*v+g_gaba*(v-er))+bgcurrent)/memc : volt (unless refractory)
+E_syn = -g_ampa*v : ampere
+I_syn = -g_gaba*(v-er): ampere
 '''
 
 #network parameters 
@@ -61,9 +63,9 @@ Pe = neurons[:NE]
 Pi = neurons[NE:]
 
 #add background noise to all neurons to acivate the network 
-background_rate = 6000*Hz
+background_rate = 90000*Hz
 G_background = PoissonGroup(NE+NI, background_rate)
-noise_strength=0.46
+noise_strength=0.5
 
 S_background = Synapses(G_background, neurons, on_pre='g_ampa += noise_strength*nS') # here we need to change the noise level. 
 # S_background.connect(True, p=0.1)
@@ -71,9 +73,9 @@ S_background.connect(j='i')
 
 print('Network and neuron models are created and connected to background noise')
 # 2.1 Create the connectivity matrix 
-
-#connected_pairs=np.random.randint(0,n,size=(4,2))
-connected_pairs=[[3,4],[4,5],[5,6],[4,3],[5,4],[6,5]]
+np.random.seed(42)  # For reproducibility
+connected_pairs=np.random.randint(0,num_of_blocks,size=(10,2))
+#connected_pairs=[[3,4],[4,5],[5,6],[4,3],[5,4],[6,5]]
 M = generate_connectivity_matrix(NE,num_of_blocks,connected_pairs,p_intra=0.5,p_bg=0.1,p_inter=0.25)
 epsilon=sum(M)/(NE*NE)
 # show the matrix
@@ -103,7 +105,7 @@ con_i2i.connect(p=epsilon)
 #    neurons and E/I currents at some random neurons
 sm = SpikeMonitor(neurons)
 
-state_mon = StateMonitor(Pe, ['g_ampa', 'g_gaba'], record=True) 
+state_mon = StateMonitor(Pe, ['E_syn', 'I_syn'], record=True) 
 
 
 # 3.3 Run the model with white noise input at 1-10 different noise intensity levels
@@ -113,7 +115,7 @@ brian2.run(1.*second)
 #    -----> Export covariance map to make a dynamics graph
 
 avg_firing_rate = len(sm.i)/(NE+NI)
-
+%matplotlib qt
 plt.figure(figsize=(15,6))
 plt.plot(sm.t, sm.i, 'k.',ms = 1)
 plt.xlabel("Time (ms)")
@@ -126,41 +128,47 @@ spike_trains = sm.spike_trains()  # dictionary: neuron index -> array of spike t
 
 # 2. Bin the spike times (e.g., in 10 ms windows)
 bin_size = 10*ms
-bins = np.arange(0, 1*second/bin_size + 1) * bin_size
+bins = np.arange(0.1, 1*second/bin_size + 1) * bin_size
 n_neurons = len(spike_trains)
 binned_counts = np.zeros((n_neurons, len(bins)-1))
 
 for i, train in spike_trains.items():
     counts, _ = np.histogram(train, bins=bins)
     binned_counts[i] = counts
+spikingneurons = np.where(np.sum(binned_counts,axis=1)>1)[0]
+
 
 # 3. Compute covariance matrix
 # Rows: neurons, Columns: time bins
-cov_matrix = np.cov(binned_counts)
+cov_matrix = np.corrcoef(binned_counts[spikingneurons,10:])
 
-print("Covariance matrix shape:", cov_matrix.shape)
+print("Correlation matrix shape:", cov_matrix.shape)
 # Option 2: Using matplotlib directly
-plt.imshow(cov_matrix, interpolation='nearest', cmap='coolwarm')
-plt.colorbar(label='Covariance')
-plt.title("Neuron Covariance Map")
+plt.figure(figsize=(15, 6))
+plt.imshow(cov_matrix, interpolation='nearest', cmap='magma')
+plt.title(f"Mean Correlation = {np.mean(cov_matrix):.2f}")
+plt.colorbar(label='Correlation')
 plt.xlabel("Neuron Index")
 plt.ylabel("Neuron Index")
 plt.show()
 
 
 # 5. Plot the E/I distributions
-E=np.array(state_mon.g_ampa[:])
-I=np.array(state_mon.g_gaba[:])
+E=np.array(state_mon.E_syn[:,1000:]/nS)
+I=np.array(state_mon.I_syn[:,1000:]/nS)
+Time=np.array(state_mon.t[1000:]/ms)
+
 E_mean=np.mean(E,axis=0)
 I_mean=np.mean(I,axis=0)
 
+#%matplotlib qt
 plt.figure(figsize=(15,6))
-bins=np.linspace(0,1.1*np.max([I_mean,E_mean]),100)
-plt.hist(E_mean,bins,alpha=0.5,label='E')
-plt.hist(I_mean,bins,alpha=0.5,label='I')
-plt.xlabel('Average syn current')
-plt.legend('Excitatory','Inhibitory')
-
-
+bins=np.linspace(0,1.01*np.max([I_mean,E_mean]),100)
+plt.plot(Time,E_mean,color='blue',label='E')
+plt.plot(Time,I_mean,color='red',label='I')
+plt.title(f"E/I currents, mean E={np.mean(E_mean):.2f} nA, mean I={np.mean(I_mean):.2f} nA")
+#plt.plot(Time,E_mean-I_mean,color='black',label='difference')
+plt.xlabel('Time (ms)')
+plt.legend()
 # if __name__ == "__main__":
 #     main()
